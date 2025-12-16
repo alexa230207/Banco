@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cajero Bancario Verde</title>
+
+<style>
+:root{
+  --bg:#f0fdf4;
+  --card:#ffffff;
+  --accent:#22c55e;
+  --accent-dark:#166534;
+  --ok:#16a34a;
+  --err:#dc2626;
+  --muted:#6b7280;
+  font-family: Inter, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(180deg,#dcfce7,#f0fdf4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.container{
+  width:100%;
+  max-width:900px;
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.1);
+  display:flex;
+  overflow:hidden;
+}
+.left,.right{padding:28px}
+.left{flex:1}
+.right{
+  width:320px;
+  background:#f7fee7;
+  border-left:1px solid #dcfce7;
+}
+h1,h2{margin:0 0 10px;color:var(--accent-dark)}
+p{margin:0 0 15px;color:var(--muted);font-size:14px}
+.card{
+  background:white;
+  padding:16px;
+  border-radius:10px;
+  margin-bottom:16px;
+  border:1px solid #dcfce7;
+}
+input{
+  width:100%;
+  padding:12px;
+  border-radius:8px;
+  border:1px solid #bbf7d0;
+  margin-bottom:10px;
+  font-size:15px;
+}
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+button:hover{background:#16a34a}
+.menu button{
+  width:auto;
+  margin-right:6px;
+  margin-bottom:6px;
+  background:white;
+  color:var(--accent-dark);
+  border:1px solid #bbf7d0;
+}
+.menu button:hover{background:#dcfce7}
+.status{
+  padding:10px;
+  border-radius:8px;
+  font-size:14px;
+  margin-bottom:12px;
+}
+.ok{background:#dcfce7;color:#166534}
+.err{background:#fee2e2;color:#991b1b}
+.hidden{display:none}
+.balance{
+  font-size:26px;
+  font-weight:700;
+  color:var(--accent-dark);
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- PANEL IZQUIERDO -->
+<div class="left">
+<h1>Cajero Bancario</h1>
+<p>Ingresa tu NIP para acceder</p>
+
+<div class="card">
+<input id="nip" type="password" placeholder="NIP">
+<button id="login">Entrar</button>
+<div id="msg"></div>
+</div>
+
+<div id="panel" class="hidden">
+
+<div class="menu">
+<button onclick="mostrar('saldo')">Consultar saldo</button>
+<button onclick="mostrar('deposito')">Depositar</button>
+<button onclick="mostrar('retiro')">Retirar</button>
+<button onclick="cerrar()">Cerrar sesión</button>
+</div>
+
+<div id="saldo" class="card hidden">
+<p>Saldo disponible</p>
+<div class="balance" id="saldoTexto">$0.00</div>
+</div>
+
+<div id="deposito" class="card hidden">
+<input id="depMonto" type="number" placeholder="Monto a depositar">
+<button onclick="depositar()">Confirmar depósito</button>
+</div>
+
+<div id="retiro" class="card hidden">
+<input id="retMonto" type="number" placeholder="Monto a retirar">
+<button onclick="retirar()">Confirmar retiro</button>
+</div>
+
+</div>
+</div>
+
+<!-- PANEL DERECHO -->
+<div class="right">
+<h2>Cuenta</h2>
+<div class="card" id="infoCuenta">
+<p>No autenticado</p>
+</div>
+</div>
+
+</div>
+
+<script>
+// ===== USUARIOS BASE =====
+const defaultUsers = {
+  "0000":{name:"Naim",balance:5000},
+  "1111":{name:"Génesis",balance:3200},
+  "2222":{name:"Alex",balance:7800},
+  "3333":{name:"Alexys",balance:1500},
+  "4444":{name:"Sebas",balance:9250},
+  "5555":{name:"Profe",balance:15000},
+  "6666":{name:"Alejandro",balance:4600},
+  "7777":{name:"Roberto",balance:2900}
+};
+
+// ===== LOCALSTORAGE =====
+let users = JSON.parse(localStorage.getItem("bankUsers")) || defaultUsers;
+let user = null;
+
+function saveUsers(){
+  localStorage.setItem("bankUsers", JSON.stringify(users));
+}
+
+// ===== ELEMENTOS =====
+const nip=document.getElementById("nip");
+const msg=document.getElementById("msg");
+const panel=document.getElementById("panel");
+const saldoTexto=document.getElementById("saldoTexto");
+const infoCuenta=document.getElementById("infoCuenta");
+
+// ===== FUNCIONES =====
+function money(n){
+  return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(n);
+}
+
+document.getElementById("login").onclick=()=>{
+  if(users[nip.value]){
+    user = users[nip.value];
+    panel.classList.remove("hidden");
+    msg.innerHTML=`<div class="status ok">Bienvenido/a ${user.name}</div>`;
+    actualizar();
+  }else{
+    msg.innerHTML='<div class="status err">NIP incorrecto</div>';
+  }
+  nip.value="";
+};
+
+function actualizar(){
+  saldoTexto.textContent=money(user.balance);
+  infoCuenta.innerHTML=`
+    <strong>${user.name}</strong>
+    <p>Saldo actual:</p>
+    <div class="balance">${money(user.balance)}</div>
+  `;
+  saveUsers();
+}
+
+function mostrar(id){
+  ["saldo","deposito","retiro"].forEach(s=>document.getElementById(s).classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function depositar(){
+  let m=parseFloat(depMonto.value);
+  if(m>0){
+    user.balance+=m;
+    actualizar();
+    alert("Depósito exitoso");
+    depMonto.value="";
+  }
+}
+
+function retirar(){
+  let m=parseFloat(retMonto.value);
+  if(m>0 && m<=user.balance){
+    user.balance-=m;
+    actualizar();
+    alert("Retiro exitoso");
+    retMonto.value="";
+  }else{
+    alert("Saldo insuficiente");
+  }
+}
+
+function cerrar(){
+  user=null;
+  panel.classList.add("hidden");
+  infoCuenta.innerHTML="<p>No autenticado</p>";
+}
+</script>
+</body>
+</html>
