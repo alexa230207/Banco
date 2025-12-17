@@ -7,11 +7,8 @@
 
 <style>
 :root{
-  --bg:#f0fdf4;
-  --card:#ffffff;
   --accent:#22c55e;
   --accent-dark:#166534;
-  --ok:#16a34a;
   --err:#dc2626;
   --muted:#6b7280;
   font-family: Inter, system-ui, sans-serif;
@@ -24,195 +21,273 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:20px;
 }
 .container{
-  width:100%;
-  max-width:900px;
-  background:var(--card);
-  border-radius:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.1);
-  display:flex;
-  overflow:hidden;
+  width:420px;
+  border-radius:20px;
+
+  /* EFECTO CRISTAL */
+  background:rgba(255,255,255,.35);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+
+  box-shadow:
+    0 8px 32px rgba(0,0,0,.25),
+    inset 0 0 0 1px rgba(255,255,255, 10);
+
+  padding:28px;
+  text-align:center;
+
+  animation:zoom .5s ease;
 }
-.left,.right{padding:28px}
-.left{flex:1}
-.right{
-  width:320px;
-  background:#f7fee7;
-  border-left:1px solid #dcfce7;
+.container:hover{
+  box-shadow:
+    0 12px 40px rgba(0,0,0,.3),
+    inset 0 0 0 1px rgba(255,255,255,85);
 }
-h1,h2{margin:0 0 10px;color:var(--accent-dark)}
-p{margin:0 0 15px;color:var(--muted);font-size:14px}
-.card{
-  background:white;
-  padding:16px;
-  border-radius:10px;
-  margin-bottom:16px;
-  border:1px solid #dcfce7;
+
+
+
+/* ===== EFECTOS ===== */
+.container > div{
+  animation:fadeSlide .4s ease;
 }
+@keyframes fadeSlide{
+  from{opacity:0; transform:translateY(15px)}
+  to{opacity:1; transform:translateY(0)}
+}
+@keyframes zoom{
+  from{transform:scale(.95); opacity:.5}
+  to{transform:scale(1); opacity:1}
+}
+
+/* ===== TEXTOS ===== */
+h1,h2{color:var(--accent-dark)}
+p{color:var(--muted)}
+
 input{
   width:100%;
   padding:12px;
-  border-radius:8px;
+  border-radius:10px;
   border:1px solid #bbf7d0;
-  margin-bottom:10px;
-  font-size:15px;
+  margin:12px 0;
+  outline:none;
+  transition:.3s;
 }
+input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px #bbf7d0;
+}
+
+/* ===== BOTONES ===== */
 button{
   width:100%;
   padding:12px;
+  margin-top:10px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
   background:var(--accent);
   color:white;
   font-weight:600;
   cursor:pointer;
+  transition:.2s;
 }
 button:hover{background:#16a34a}
+button:active{transform:scale(.96)}
+
 .menu button{
-  width:auto;
-  margin-right:6px;
-  margin-bottom:6px;
   background:white;
   color:var(--accent-dark);
   border:1px solid #bbf7d0;
 }
-.menu button:hover{background:#dcfce7}
-.status{
-  padding:10px;
-  border-radius:8px;
-  font-size:14px;
-  margin-bottom:12px;
+.menu button:hover{
+  background:#dcfce7;
 }
-.ok{background:#dcfce7;color:#166534}
-.err{background:#fee2e2;color:#991b1b}
+
 .hidden{display:none}
-.balance{
-  font-size:26px;
-  font-weight:700;
-  color:var(--accent-dark);
+.balance{font-size:28px;font-weight:800}
+
+.success{color:#166534}
+.error{color:#991b1b}
+
+
+
+/* ===== FONDO DIAGONAL ANIMADO ===== */
+.bg{
+  animation:slide 4s ease-in-out infinite alternate;
+  background-image:linear-gradient(-60deg,#004A9E 50%,#009E69 50%);
+  bottom:0;
+  left:-50%;
+  opacity:.35;
+  position:fixed;
+  right:-50%;
+  top:0;
+  z-index:-2;
 }
+
+.bg2{
+  animation-direction:alternate-reverse;
+  animation-duration:6s;
+  opacity:.25;
+}
+
+.bg3{
+  animation-duration:8s;
+  opacity:.2;
+}
+
+@keyframes slide{
+  0%{transform:translateX(-25%)}
+  100%{transform:translateX(25%)}
+}
+
+
 </style>
 </head>
 
 <body>
+
+  <!-- FONDO ANIMADO -->
+<div class="bg"></div>
+<div class="bg bg2"></div>
+<div class="bg bg3"></div>
+
+
 <div class="container">
 
-<!-- PANEL IZQUIERDO -->
-<div class="left">
-<h1>Cajero Bancario</h1>
-<p>Ingresa tu NIP para acceder</p>
-
-<div class="card">
-<input id="nip" type="password" placeholder="NIP">
-<button id="login">Entrar</button>
-<div id="msg"></div>
+<!-- BIENVENIDA -->
+<div id="bienvenida">
+  <h1>Bienvenido</h1>
+  <p>Ingresa tu NIP</p>
+  <input id="nip" type="password">
+  <button onclick="login()">Entrar</button>
+  <div id="msg"></div>
 </div>
 
-<div id="panel" class="hidden">
-
-<div class="menu">
-<button onclick="mostrar('saldo')">Consultar saldo</button>
-<button onclick="mostrar('deposito')">Depositar</button>
-<button onclick="mostrar('retiro')">Retirar</button>
-<button onclick="cerrar()">Cerrar sesión</button>
+<!-- MENU -->
+<div id="menu" class="hidden">
+  <h2 id="nombre"></h2>
+  <p>¿Qué deseas hacer?</p>
+  <div class="menu">
+    <button onclick="ir('saldo')">Consultar saldo</button>
+    <button onclick="ir('deposito')">Depositar</button>
+    <button onclick="ir('retiro')">Retirar</button>
+    <button onclick="salir()">Salir</button>
+  </div>
 </div>
 
-<div id="saldo" class="card hidden">
-<p>Saldo disponible</p>
-<div class="balance" id="saldoTexto">$0.00</div>
+<!-- SALDO -->
+<div id="saldo" class="hidden">
+  <h2>Saldo disponible</h2>
+  <div class="balance" id="saldoTexto"></div>
+  <button onclick="finalizar()">Continuar</button>
 </div>
 
-<div id="deposito" class="card hidden">
-<input id="depMonto" type="number" placeholder="Monto a depositar">
-<button onclick="depositar()">Confirmar depósito</button>
+<!-- DEPOSITO -->
+<div id="deposito" class="hidden">
+  <h2>Depósito</h2>
+  <input id="depMonto" type="number" placeholder="Monto">
+  <button onclick="depositar()">Confirmar</button>
 </div>
 
-<div id="retiro" class="card hidden">
-<input id="retMonto" type="number" placeholder="Monto a retirar">
-<button onclick="retirar()">Confirmar retiro</button>
+<!-- RETIRO -->
+<div id="retiro" class="hidden">
+  <h2>Retiro</h2>
+  <input id="retMonto" type="number" placeholder="Monto">
+  <button onclick="retirar()">Confirmar</button>
 </div>
 
-</div>
+<!-- MENSAJE -->
+<div id="mensaje" class="hidden">
+  <h2 id="tituloMensaje"></h2>
+  <p id="textoMensaje"></p>
+  <button onclick="continuarDesdeMensaje()">Continuar</button>
 </div>
 
-<!-- PANEL DERECHO -->
-<div class="right">
-<h2>Cuenta</h2>
-<div class="card" id="infoCuenta">
-<p>No autenticado</p>
+<!-- CONFIRMACION -->
+<div id="continuar" class="hidden">
+  <h2>¿Deseas realizar otra operación?</h2>
+  <button onclick="volverMenu()">Sí</button>
+  <button onclick="despedida()">No</button>
 </div>
+
+<!-- ADIOS -->
+<div id="adios" class="hidden">
+  <h1>Sesión finalizada</h1>
+  <p>Gracias por usar el cajero</p>
 </div>
 
 </div>
 
 <script>
-// ===== USUARIOS BASE =====
-const defaultUsers = {
+// ===== CUENTAS INICIALES =====
+const defaultUsers={
   "0000":{name:"Naim",balance:5000},
   "1111":{name:"Génesis",balance:3200},
   "2222":{name:"Alex",balance:7800},
-  "3333":{name:"Alexys",balance:1500},
-  "4444":{name:"Sebas",balance:9250},
-  "5555":{name:"Profe",balance:15000},
-  "6666":{name:"Alejandro",balance:4600},
-  "7777":{name:"Roberto",balance:2900}
+  "3333":{name:"Alex",balance:4100},
+  "4444":{name:"Sebastian",balance:2600},
+  "5555":{name:"Oscar",balance:9800},
+  "6666":{name:"Alejandro",balance:5300},
+  "7777":{name:"Alexys",balance:1500}
 };
 
-// ===== LOCALSTORAGE =====
+// ===== MEMORIA =====
 let users = JSON.parse(localStorage.getItem("bankUsers")) || defaultUsers;
-let user = null;
+let user=null;
+let intentos=0;
+let volverA="menu";
 
-function saveUsers(){
+function guardar(){
   localStorage.setItem("bankUsers", JSON.stringify(users));
 }
 
-// ===== ELEMENTOS =====
-const nip=document.getElementById("nip");
-const msg=document.getElementById("msg");
-const panel=document.getElementById("panel");
-const saldoTexto=document.getElementById("saldoTexto");
-const infoCuenta=document.getElementById("infoCuenta");
+function mostrar(id){
+  document.querySelectorAll(".container > div")
+    .forEach(d=>d.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
 
-// ===== FUNCIONES =====
 function money(n){
   return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(n);
 }
 
-document.getElementById("login").onclick=()=>{
-  if(users[nip.value]){
-    user = users[nip.value];
-    panel.classList.remove("hidden");
-    msg.innerHTML=`<div class="status ok">Bienvenido/a ${user.name}</div>`;
-    actualizar();
-  }else{
-    msg.innerHTML='<div class="status err">NIP incorrecto</div>';
+function login(){
+  if(intentos>=3){
+    msg.innerHTML="<p class='error'>Cuenta bloqueada</p>";
+    return;
   }
-  nip.value="";
-};
-
-function actualizar(){
-  saldoTexto.textContent=money(user.balance);
-  infoCuenta.innerHTML=`
-    <strong>${user.name}</strong>
-    <p>Saldo actual:</p>
-    <div class="balance">${money(user.balance)}</div>
-  `;
-  saveUsers();
+  const nip=document.getElementById("nip").value;
+  if(users[nip]){
+    user=users[nip];
+    intentos=0;
+    nombre.textContent=`Hola, ${user.name}`;
+    mostrar("menu");
+  }else{
+    intentos++;
+    msg.innerHTML=
+      intentos>=3
+      ? "<p class='error'>Cuenta bloqueada</p>"
+      : `<p class='error'>NIP incorrecto (${intentos}/3)</p>`;
+  }
 }
 
-function mostrar(id){
-  ["saldo","deposito","retiro"].forEach(s=>document.getElementById(s).classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
+function ir(op){
+  if(op==="saldo"){
+    saldoTexto.textContent=money(user.balance);
+  }
+  mostrar(op);
 }
 
 function depositar(){
   let m=parseFloat(depMonto.value);
   if(m>0){
     user.balance+=m;
-    actualizar();
-    alert("Depósito exitoso");
+    guardar();
+    volverA="menu";
+    mostrarMensaje("Depósito exitoso",
+      `Se depositaron ${money(m)} correctamente.`,
+      "success");
     depMonto.value="";
   }
 }
@@ -221,19 +296,40 @@ function retirar(){
   let m=parseFloat(retMonto.value);
   if(m>0 && m<=user.balance){
     user.balance-=m;
-    actualizar();
-    alert("Retiro exitoso");
+    guardar();
+    volverA="menu";
+    mostrarMensaje("Retiro exitoso",
+      `Se retiraron ${money(m)} correctamente.`,
+      "success");
     retMonto.value="";
   }else{
-    alert("Saldo insuficiente");
+    volverA="retiro";
+    mostrarMensaje("Saldo insuficiente",
+      "No cuentas con saldo suficiente.",
+      "error");
   }
 }
 
-function cerrar(){
-  user=null;
-  panel.classList.add("hidden");
-  infoCuenta.innerHTML="<p>No autenticado</p>";
+function mostrarMensaje(titulo,texto,clase){
+  tituloMensaje.textContent=titulo;
+  textoMensaje.textContent=texto;
+  tituloMensaje.className=clase;
+  mostrar("mensaje");
+}
+
+function continuarDesdeMensaje(){
+  mostrar(volverA);
+}
+
+function finalizar(){mostrar("continuar")}
+function volverMenu(){mostrar("menu")}
+function salir(){despedida()}
+function despedida(){
+  mostrar("adios");
+  setTimeout(()=>location.reload(),3000);
 }
 </script>
+
 </body>
 </html>
+
